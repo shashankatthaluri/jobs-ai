@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from services.supabase import supabase_service
-from routers.auth import get_current_user
+from middleware.auth import require_auth, AuthenticatedUser
 
 router = APIRouter(prefix="/api/credits", tags=["credits"])
 
@@ -23,22 +23,22 @@ class UseCreditsResponse(BaseModel):
 
 
 @router.get("", response_model=CreditsResponse)
-async def get_credits(user: dict = Depends(get_current_user)):
+async def get_credits(user: AuthenticatedUser = Depends(require_auth)):
     """Get current user's credit information."""
-    credits = await supabase_service.get_user_credits(user["id"])
+    credits = await supabase_service.get_user_credits(user.id)
     return CreditsResponse(**credits)
 
 
 @router.post("/use", response_model=UseCreditsResponse)
-async def use_credit(user: dict = Depends(get_current_user)):
+async def use_credit(user: AuthenticatedUser = Depends(require_auth)):
     """
     Use one credit for an analysis.
     Returns success status and remaining credits.
     """
-    success = await supabase_service.use_credit(user["id"])
+    success = await supabase_service.use_credit(user.id)
     
     if not success:
-        credits = await supabase_service.get_user_credits(user["id"])
+        credits = await supabase_service.get_user_credits(user.id)
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail={
@@ -49,7 +49,7 @@ async def use_credit(user: dict = Depends(get_current_user)):
         )
     
     # Get updated credits
-    credits = await supabase_service.get_user_credits(user["id"])
+    credits = await supabase_service.get_user_credits(user.id)
     return UseCreditsResponse(
         success=True,
         credits_remaining=credits["credits_remaining"],
@@ -58,9 +58,9 @@ async def use_credit(user: dict = Depends(get_current_user)):
 
 
 @router.get("/check")
-async def check_credits(user: dict = Depends(get_current_user)):
+async def check_credits(user: AuthenticatedUser = Depends(require_auth)):
     """Check if user has credits available (pre-analysis check)."""
-    credits = await supabase_service.get_user_credits(user["id"])
+    credits = await supabase_service.get_user_credits(user.id)
     has_credits = credits["credits_remaining"] > 0
     
     return {
