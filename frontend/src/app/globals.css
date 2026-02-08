@@ -1,0 +1,383 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   JOBS AI — EDITORIAL LUXURY DESIGN SYSTEM
+   Aesthetic: The Economist meets luxury career portal
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ─── Typography ─────────────────────────────────────────────────────────── */
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), Georgia, serif;
+
+  /* ─── Color Palette ──────────────────────────────────────────────────────── */
+  /* Warm, sophisticated tones */
+  --color-cream: #FFFBF5;
+  --color-cream-dark: #F7F3ED;
+  --color-ivory: #FAF8F5;
+
+  /* Primary: Deep Navy */
+  --color-navy: #0A1628;
+  --color-navy-light: #1A2D4A;
+  --color-navy-muted: #2E4057;
+
+  /* Accent: Warm Gold */
+  --color-gold: #C9A227;
+  --color-gold-light: #E8D48A;
+  --color-gold-dark: #A68419;
+
+  /* Neutrals */
+  --color-charcoal: #2D3748;
+  --color-slate: #4A5568;
+  --color-stone: #718096;
+  --color-mist: #A0AEC0;
+  --color-cloud: #E2E8F0;
+
+  /* Semantic */
+  --color-success: #38A169;
+  --color-error: #C53030;
+
+  /* ─── Shadows ────────────────────────────────────────────────────────────── */
+  --shadow-subtle: 0 1px 2px rgba(10, 22, 40, 0.04);
+  --shadow-soft: 0 4px 12px rgba(10, 22, 40, 0.06);
+  --shadow-medium: 0 8px 24px rgba(10, 22, 40, 0.08);
+  --shadow-editorial: 0 20px 50px rgba(10, 22, 40, 0.12);
+  --shadow-gold: 0 4px 20px rgba(201, 162, 39, 0.25);
+
+  /* ─── Animations ─────────────────────────────────────────────────────────── */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse-gold {
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(201, 162, 39, 0.4);
+    }
+
+    50% {
+      box-shadow: 0 0 0 8px rgba(201, 162, 39, 0);
+    }
+  }
+
+  @keyframes pulse {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  --animate-fade-up: fadeUp 0.6s ease-out forwards;
+  --animate-fade-in: fadeIn 0.4s ease-out forwards;
+  --animate-slide-in: slideIn 0.5s ease-out forwards;
+  --animate-pulse-gold: pulse-gold 2s infinite;
+  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ─── Base Styles ──────────────────────────────────────────────────────────── */
+:root {
+  --background: var(--color-cream);
+  --foreground: var(--color-navy);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-navy);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle paper texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.015;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ─── Selection ────────────────────────────────────────────────────────────── */
+::selection {
+  background-color: var(--color-gold-light);
+  color: var(--color-navy);
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-mist);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-stone);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPONENT STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  * {
+    border-color: var(--color-cloud);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--color-navy);
+  }
+}
+
+@layer components {
+
+  /* ─── Buttons ──────────────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply relative px-8 py-4 bg-navy text-cream rounded-sm font-medium transition-all duration-300 ease-out overflow-hidden hover:bg-navy-light hover:shadow-medium active:scale-[0.98];
+  }
+
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 bg-gold opacity-0 transition-opacity duration-300;
+  }
+
+  .btn-primary:hover::before {
+    opacity: 0.1;
+  }
+
+  .btn-secondary {
+    @apply px-8 py-4 bg-transparent text-navy rounded-sm font-medium border-2 border-navy transition-all duration-300 hover:bg-navy hover:text-cream active:scale-[0.98];
+  }
+
+  .btn-gold {
+    @apply px-8 py-4 bg-gold text-navy rounded-sm font-semibold transition-all duration-300 shadow-gold hover:bg-gold-dark hover:shadow-lg active:scale-[0.98];
+  }
+
+  /* ─── Cards ────────────────────────────────────────────────────────────── */
+  .card-editorial {
+    @apply bg-white rounded-sm border border-cloud p-8 shadow-soft transition-all duration-300 hover:shadow-editorial hover:border-mist hover:-translate-y-1;
+  }
+
+  .card-feature {
+    @apply bg-ivory rounded-sm p-8 border border-transparent transition-all duration-300 hover:border-gold-light hover:shadow-soft;
+  }
+
+  .card-accent {
+    @apply bg-navy text-cream rounded-sm p-8 shadow-editorial;
+  }
+
+  /* ─── Typography ───────────────────────────────────────────────────────── */
+  .headline-display {
+    @apply font-display text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tighter leading-[0.95];
+  }
+
+  .headline-section {
+    @apply font-display text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight;
+  }
+
+  .text-editorial {
+    @apply font-serif text-lg md:text-xl leading-relaxed text-slate;
+  }
+
+  .text-caption {
+    @apply text-sm font-medium tracking-wide uppercase text-stone;
+  }
+
+  .pull-quote {
+    @apply font-display text-2xl md:text-3xl italic text-navy-muted border-l-4 border-gold pl-6 py-2;
+  }
+
+  /* ─── Decorative Elements ──────────────────────────────────────────────── */
+  .divider {
+    @apply w-16 h-0.5 bg-gold;
+  }
+
+  .divider-full {
+    @apply w-full h-px bg-cloud;
+  }
+
+  .accent-dot {
+    @apply w-2 h-2 rounded-full bg-gold inline-block;
+  }
+
+  .accent-line {
+    @apply w-px h-16 bg-gold mx-auto;
+  }
+
+  /* ─── Navigation ───────────────────────────────────────────────────────── */
+  .nav-link {
+    @apply text-sm font-medium text-stone transition-colors duration-200 hover:text-navy relative;
+  }
+
+  .nav-link::after {
+    content: '';
+    @apply absolute -bottom-1 left-0 w-0 h-px bg-gold transition-all duration-300;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
+  }
+
+  /* ─── Inputs ───────────────────────────────────────────────────────────── */
+  .input-field {
+    @apply w-full bg-white border border-cloud rounded-sm px-5 py-4 text-navy placeholder:text-mist transition-all duration-200 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold-light/30;
+  }
+
+  /* ─── Badges ───────────────────────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-ivory border border-cloud rounded-sm text-sm font-medium text-slate;
+  }
+
+  .badge-gold {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-gold-light/30 border border-gold-light rounded-sm text-sm font-medium text-gold-dark;
+  }
+
+  /* ─── Layout Utilities ─────────────────────────────────────────────────── */
+  .container-editorial {
+    @apply max-w-6xl mx-auto px-6 md:px-8 lg:px-12;
+  }
+
+  .section-padding {
+    @apply py-20 md:py-28 lg:py-36;
+  }
+
+  /* ─── Animation Utilities ──────────────────────────────────────────────── */
+  .animate-on-scroll {
+    opacity: 0;
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+
+  /* ─── Resume Preview (Match PDF Styling) ─────────────────────────────────── */
+  .resume-preview {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+  }
+
+  .resume-preview h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    color: #000;
+    border-bottom: 2px solid #333;
+    padding-bottom: 8px;
+  }
+
+  .resume-preview h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 24px 0 12px 0;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #666;
+    padding-bottom: 6px;
+  }
+
+  .resume-preview h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 16px 0 8px 0;
+    color: #000;
+  }
+
+  .resume-preview p {
+    margin: 8px 0;
+  }
+
+  .resume-preview ul {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+
+  .resume-preview li {
+    margin: 6px 0;
+    line-height: 1.5;
+  }
+
+  .resume-preview strong {
+    font-weight: 700;
+    color: #000;
+  }
+}
