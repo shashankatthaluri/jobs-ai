@@ -1,3 +1,9 @@
+# Agent skill folders (IDE-specific, not project code)
+.agent/
+.agents/
+design-system/
+plan.md
+
 # Dependencies
 node_modules/
 __pycache__/
