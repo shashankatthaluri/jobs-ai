@@ -4,7 +4,7 @@ Splits the processing into:
 1. /analyze - CV parsing + JD analysis + skill gap + voice profile
 2. /tailor - Final tailoring with confirmed skills AND voice mirroring
 """
-from fastapi import APIRouter, File, UploadFile, Form, HTTPException
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 
@@ -20,6 +20,9 @@ from agents.url_resolver import extract_jd_from_url
 from agents.jd_analyzer import analyze_job_description
 from agents.company_intel import get_company_intel_with_voice, get_company_intelligence_from_url
 from agents.skill_gap_analyzer import analyze_skill_gap
+
+from middleware.auth import require_auth, AuthenticatedUser
+from services.supabase import supabase_service
 
 
 router = APIRouter(prefix="/api/analyze", tags=["Multi-Step Analysis"])
@@ -114,15 +117,21 @@ class TailorResponse(BaseModel):
     company_summary: str
     keywords_used: list[str]
     matched_skills: list[str]
+    credits_remaining: int  # NEW: Return updated credits
 
 
 @router.post("/step2/tailor", response_model=TailorResponse)
-async def tailor_step2(request: TailorRequest):
+async def tailor_step2(
+    request: TailorRequest,
+    user: AuthenticatedUser = Depends(require_auth)
+):
     """
     Step 2: Tailoring with Confirmed Skills + Voice Mirroring
     
     Takes the analysis from step 1 plus user-confirmed skills.
     Generates tailored resume with company voice mirroring.
+    
+    Deducts 1 credit from user's account ONLY on successful generation.
     """
     from agents.cv_matcher import analyze_cv_job_match
     from agents.bullet_rewriter import rewrite_bullets
@@ -130,6 +139,19 @@ async def tailor_step2(request: TailorRequest):
     from agents.cover_letter import generate_cover_letter
     from agents.cold_email import generate_cold_email
     from agents.company_summary import generate_company_summary
+    
+    # --- PRE-CHECK CREDITS ---
+    credits = await supabase_service.get_user_credits(user.id)
+    if credits["credits_remaining"] <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "error": "no_credits",
+                "message": "No credits remaining. Please upgrade or purchase more credits.",
+                "credits_remaining": credits["credits_remaining"],
+                "tier": credits["tier"]
+            }
+        )
     
     try:
         # Add confirmed skills to CV skills list
@@ -171,6 +193,18 @@ async def tailor_step2(request: TailorRequest):
         )
         
         company_summary = await generate_company_summary(request.company_intel)
+        
+        # --- DEDUCT CREDIT ONLY ON SUCCESS ---
+        credit_used = await supabase_service.use_credit(user.id)
+        if not credit_used:
+            # This should theoretically not happen due to pre-check, but safety first
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail={"message": "Insufficient credits to complete the request."}
+            )
+
+        # Get updated credits after deduction
+        updated_credits = await supabase_service.get_user_credits(user.id)
 
         return TailorResponse(
             resume_markdown=tailored_resume.resume_markdown,
@@ -178,7 +212,8 @@ async def tailor_step2(request: TailorRequest):
             cold_email=cold_email.content,
             company_summary=company_summary.content,
             keywords_used=tailored_resume.keywords_used,
-            matched_skills=tailored_resume.matched_skills
+            matched_skills=tailored_resume.matched_skills,
+            credits_remaining=updated_credits["credits_remaining"]
         )
 
     except ValueError as e:
