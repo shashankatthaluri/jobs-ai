@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Zap, Sparkles, Users } from 'lucide-react'
+import { Zap, Sparkles, Users, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { getCredits, type CreditsInfo } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
+import { motion, AnimatePresence } from 'framer-motion'
 
 /**
  * Displays user's credits usage in the header.
@@ -17,6 +18,7 @@ export default function CreditsDisplay() {
     const pathname = usePathname()
     const [credits, setCredits] = useState<CreditsInfo | null>(null)
     const [loading, setLoading] = useState(true)
+    const [isRefreshing, setIsRefreshing] = useState(false)
 
     useEffect(() => {
         if (!user) {
@@ -25,6 +27,7 @@ export default function CreditsDisplay() {
         }
 
         const fetchCredits = async () => {
+            if (credits) setIsRefreshing(true)
             try {
                 const data = await getCredits()
                 setCredits(data)
@@ -39,6 +42,7 @@ export default function CreditsDisplay() {
                 })
             } finally {
                 setLoading(false)
+                setIsRefreshing(false)
             }
         }
 
@@ -48,17 +52,17 @@ export default function CreditsDisplay() {
     // Don't show anything if not logged in
     if (!user) return null
 
-    // Loading state
-    if (loading) {
+    // Initial loading state
+    if (loading && !credits) {
         return (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-cloud/50 rounded-sm animate-pulse">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-cloud/50 rounded-sm animate-pulse min-w-[100px]">
                 <div className="w-4 h-4 bg-mist rounded-sm" />
                 <div className="w-12 h-4 bg-mist rounded-sm" />
             </div>
         )
     }
 
-    // Use defaults if credits is still null
+    // Use defaults if credits is still null (shouldn't happen with fallback)
     const displayCredits = credits || {
         credits_remaining: 3,
         credits_used_this_month: 0,
@@ -103,35 +107,53 @@ export default function CreditsDisplay() {
     // Determine style based on credits state
     const getDisplayStyle = () => {
         if (isExhausted) {
-            return 'bg-red-100 text-red-700 hover:bg-red-200'
+            return 'bg-red-50 text-red-600 border border-red-100'
         }
         if (isLow && displayCredits.tier === 'free') {
-            return 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+            return 'bg-amber-50 text-amber-700 border border-amber-100'
         }
-        return `${tierConfig.bgColor} ${tierConfig.textColor}`
+        return `${tierConfig.bgColor} ${tierConfig.textColor} border border-transparent`
     }
 
     return (
         <div className="flex items-center gap-2">
-            {/* Credit Counter - Shows USED / TOTAL */}
-            <Link
-                href="/#pricing"
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-sm text-sm font-medium transition-all hover:scale-105 ${getDisplayStyle()}`}
-                title={`${creditsUsed} of ${displayCredits.tier_limit} credits used this month (${displayCredits.credits_remaining} remaining)`}
-            >
-                {tierConfig.icon}
-                <span className="font-semibold">{creditsUsed}</span>
-                <span className="text-xs opacity-70">/ {displayCredits.tier_limit} used</span>
-            </Link>
-
-            {/* Upgrade prompt for users with low or no credits */}
-            {(isLow || isExhausted) && (
-                <Link
-                    href="/#pricing"
-                    className="hidden sm:flex items-center gap-1 px-2 py-1 text-xs text-gold-dark hover:text-gold font-medium transition-colors"
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={`${displayCredits.credits_remaining}-${isRefreshing}`}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.2 }}
                 >
-                    {isExhausted ? 'Get More →' : 'Upgrade →'}
-                </Link>
+                    <Link
+                        href="/#pricing"
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-sm text-sm font-medium transition-all hover:scale-105 shadow-sm ${getDisplayStyle()}`}
+                        title={`${creditsUsed} of ${displayCredits.tier_limit} credits used this month (${displayCredits.credits_remaining} remaining)`}
+                    >
+                        {isRefreshing ? (
+                            <Loader2 className="w-4 h-4 animate-spin opacity-50" />
+                        ) : (
+                            tierConfig.icon
+                        )}
+                        <span className="font-bold">{creditsUsed}</span>
+                        <span className="text-[11px] opacity-70 uppercase tracking-wider">/ {displayCredits.tier_limit} used</span>
+                    </Link>
+                </motion.div>
+            </AnimatePresence>
+
+            {/* Upgrade prompt - Premium styling */}
+            {(isLow || isExhausted) && !isRefreshing && (
+                <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                >
+                    <Link
+                        href="/#pricing"
+                        className="hidden sm:flex items-center gap-1 px-2 py-1 text-xs text-gold-dark hover:text-gold font-bold transition-colors uppercase tracking-widest"
+                    >
+                        {isExhausted ? 'Refill →' : 'Upgrade →'}
+                    </Link>
+                </motion.div>
             )}
         </div>
     )
