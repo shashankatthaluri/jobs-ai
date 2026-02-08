@@ -85,22 +85,42 @@ class SupabaseService:
     # =========================================
     
     async def get_user_credits(self, user_id: str) -> dict:
-        """Get user's credit information."""
-        result = self.client.table("profiles").select(
-            "credits_remaining, credits_used_this_month, credits_reset_at, tier"
-        ).eq("id", user_id).single().execute()
+        """Get user's credit information.
         
-        if not result.data:
-            return {"credits_remaining": 0, "credits_used_this_month": 0, "tier": "free"}
-        
-        # Calculate tier limit
-        tier = result.data.get("tier", "free")
+        Falls back to tier-based defaults if credits columns don't exist.
+        """
         tier_limits = {"free": 3, "pro": 30, "team": 100}
         
+        try:
+            # Try to get credits columns (may not exist if migration not run)
+            result = self.client.table("profiles").select(
+                "credits_remaining, credits_used_this_month, credits_reset_at, tier"
+            ).eq("id", user_id).single().execute()
+            
+            if result.data and result.data.get("credits_remaining") is not None:
+                tier = result.data.get("tier", "free")
+                return {
+                    "credits_remaining": result.data.get("credits_remaining", tier_limits.get(tier, 3)),
+                    "credits_used_this_month": result.data.get("credits_used_this_month", 0),
+                    "credits_reset_at": result.data.get("credits_reset_at"),
+                    "tier": tier,
+                    "tier_limit": tier_limits.get(tier, 3)
+                }
+        except Exception:
+            pass
+        
+        # Fallback: Get just the tier and calculate defaults
+        try:
+            result = self.client.table("profiles").select("tier").eq("id", user_id).single().execute()
+            tier = result.data.get("tier", "free") if result.data else "free"
+        except Exception:
+            tier = "free"
+        
+        # Return defaults based on tier
         return {
-            "credits_remaining": result.data.get("credits_remaining", 0),
-            "credits_used_this_month": result.data.get("credits_used_this_month", 0),
-            "credits_reset_at": result.data.get("credits_reset_at"),
+            "credits_remaining": tier_limits.get(tier, 3),
+            "credits_used_this_month": 0,
+            "credits_reset_at": None,
             "tier": tier,
             "tier_limit": tier_limits.get(tier, 3)
         }

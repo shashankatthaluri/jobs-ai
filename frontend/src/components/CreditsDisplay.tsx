@@ -9,12 +9,12 @@ import { useAuth } from '@/context/AuthContext'
 /**
  * Displays user's remaining credits in the header.
  * Shows tier badge and credit count with visual feedback.
+ * Falls back to default free tier values if API fails.
  */
 export default function CreditsDisplay() {
     const { user } = useAuth()
     const [credits, setCredits] = useState<CreditsInfo | null>(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(false)
 
     useEffect(() => {
         if (!user) {
@@ -26,10 +26,16 @@ export default function CreditsDisplay() {
             try {
                 const data = await getCredits()
                 setCredits(data)
-                setError(false)
             } catch (err) {
                 console.error('Failed to fetch credits:', err)
-                setError(true)
+                // Fallback to default free tier if API fails
+                // This handles the case when database migration hasn't been run
+                setCredits({
+                    credits_remaining: 3,
+                    credits_used_this_month: 0,
+                    tier: 'free',
+                    tier_limit: 3
+                })
             } finally {
                 setLoading(false)
             }
@@ -51,22 +57,17 @@ export default function CreditsDisplay() {
         )
     }
 
-    // Error state - show upgrade link
-    if (error || !credits) {
-        return (
-            <Link
-                href="/#pricing"
-                className="flex items-center gap-2 px-3 py-1.5 bg-gold/10 text-gold-dark hover:bg-gold/20 transition-colors rounded-sm text-sm font-medium"
-            >
-                <Sparkles className="w-4 h-4" />
-                Upgrade
-            </Link>
-        )
+    // Use defaults if credits is still null
+    const displayCredits = credits || {
+        credits_remaining: 3,
+        credits_used_this_month: 0,
+        tier: 'free',
+        tier_limit: 3
     }
 
     // Determine tier icon and styling
     const getTierConfig = () => {
-        switch (credits.tier) {
+        switch (displayCredits.tier) {
             case 'pro':
                 return {
                     icon: <Zap className="w-4 h-4" />,
@@ -92,7 +93,7 @@ export default function CreditsDisplay() {
     }
 
     const tierConfig = getTierConfig()
-    const isLow = credits.credits_remaining <= 1 && credits.tier === 'free'
+    const isLow = displayCredits.credits_remaining <= 1 && displayCredits.tier === 'free'
 
     return (
         <div className="flex items-center gap-2">
@@ -100,14 +101,14 @@ export default function CreditsDisplay() {
             <Link
                 href="/#pricing"
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-sm text-sm font-medium transition-all hover:scale-105 ${isLow
-                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                        : `${tierConfig.bgColor} ${tierConfig.textColor}`
+                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                    : `${tierConfig.bgColor} ${tierConfig.textColor}`
                     }`}
-                title={`${credits.credits_remaining} / ${credits.tier_limit} credits remaining this month`}
+                title={`${displayCredits.credits_remaining} / ${displayCredits.tier_limit} credits remaining this month`}
             >
                 {tierConfig.icon}
-                <span className="font-semibold">{credits.credits_remaining}</span>
-                <span className="text-xs opacity-70">/ {credits.tier_limit}</span>
+                <span className="font-semibold">{displayCredits.credits_remaining}</span>
+                <span className="text-xs opacity-70">/ {displayCredits.tier_limit}</span>
             </Link>
 
             {/* Upgrade prompt for free users with low credits */}
