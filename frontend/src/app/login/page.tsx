@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 
-export default function LoginPage() {
+function LoginForm() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -154,5 +154,34 @@ export default function LoginPage() {
                 </div>
             </motion.div>
         </div>
+    )
+}
+
+function LoginLoading() {
+    return (
+        <div className="min-h-[80vh] flex items-center justify-center py-12">
+            <div className="w-full max-w-md">
+                <div className="text-center mb-8">
+                    <div className="h-9 w-48 bg-cloud animate-pulse mx-auto mb-2 rounded"></div>
+                    <div className="h-5 w-64 bg-cloud animate-pulse mx-auto rounded"></div>
+                </div>
+                <div className="card-editorial p-8">
+                    <div className="h-12 bg-cloud animate-pulse rounded mb-6"></div>
+                    <div className="space-y-4">
+                        <div className="h-12 bg-cloud animate-pulse rounded"></div>
+                        <div className="h-12 bg-cloud animate-pulse rounded"></div>
+                        <div className="h-12 bg-cloud animate-pulse rounded"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<LoginLoading />}>
+            <LoginForm />
+        </Suspense>
     )
 }
