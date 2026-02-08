@@ -28,15 +28,36 @@ export default function ResultsPage() {
     const { results } = useJob();
     const [activeTab, setActiveTab] = useState<TabType>('resume');
     const [copied, setCopied] = useState(false);
+    const [isReady, setIsReady] = useState(false);
+
+    // Wait a tick for context to sync before checking results
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsReady(true);
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
-        if (!results) {
+        if (isReady && !results) {
             router.push('/upload');
-        } else {
+        } else if (results) {
             // Scroll to top when results are available
             window.scrollTo(0, 0);
         }
-    }, [results, router]);
+    }, [results, router, isReady]);
+
+    // Show loading while waiting for context to sync
+    if (!isReady) {
+        return (
+            <div className="min-h-screen bg-cream flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-8 h-8 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-stone">Loading results...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!results) return null;
 
