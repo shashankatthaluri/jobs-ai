@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
+import PricingSection from '@/components/PricingSection';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    JOBS AI — LANDING PAGE
@@ -426,63 +427,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          CTA SECTION
-          Final conversion
+          PRICING SECTION
+          Embedded from PricingSection component
           ═══════════════════════════════════════════════════════════════════ */}
-      <section className="bg-navy text-cream">
-        <div className="container-editorial py-24 md:py-32 text-center">
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold mb-6 text-cream">
-              Your next chapter begins here.
-            </h2>
-            <p className="text-mist text-lg md:text-xl max-w-2xl mx-auto mb-12">
-              Stop compromising. Start with precision. Your career deserves
-              nothing less than absolute authenticity, perfectly presented.
-            </p>
-
-            <Link
-              href="/upload"
-              className="btn-gold inline-flex items-center gap-3 text-lg group"
-            >
-              Begin Your Session
-              <svg
-                className="w-5 h-5 transition-transform group-hover:translate-x-1"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
-
-            {/* Trust badges */}
-            <div className="mt-16 flex flex-wrap justify-center gap-8 text-sm text-mist">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-                </svg>
-                No account required
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-                </svg>
-                Instant results
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-                </svg>
-                Your data stays private
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      <PricingSection />
 
     </div>
   );
