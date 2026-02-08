@@ -190,3 +190,92 @@ export async function processApplication(
 
     return response.json();
 }
+
+// ============================================================
+// Credits API
+// ============================================================
+
+export interface CreditsInfo {
+    credits_remaining: number;
+    credits_used_this_month: number;
+    tier: string;
+    tier_limit: number;
+    credits_reset_at?: string;
+}
+
+export interface CreditsCheck {
+    has_credits: boolean;
+    credits_remaining: number;
+    tier: string;
+    tier_limit: number;
+    message: string;
+}
+
+/**
+ * Get current user's credit information.
+ */
+export async function getCredits(): Promise<CreditsInfo> {
+    const authHeaders = await getAuthHeaders();
+
+    const response = await fetch(`${API_BASE}/api/credits`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch credits');
+    }
+
+    return response.json();
+}
+
+/**
+ * Check if user has credits available before starting analysis.
+ */
+export async function checkCredits(): Promise<CreditsCheck> {
+    const authHeaders = await getAuthHeaders();
+
+    const response = await fetch(`${API_BASE}/api/credits/check`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to check credits');
+    }
+
+    return response.json();
+}
+
+/**
+ * Use one credit for an analysis.
+ * Returns updated credits info or throws if no credits.
+ */
+export async function useCredit(): Promise<{ success: boolean; credits_remaining: number; message: string }> {
+    const authHeaders = await getAuthHeaders();
+
+    const response = await fetch(`${API_BASE}/api/credits/use`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders,
+        },
+    });
+
+    if (response.status === 402) {
+        const error = await response.json();
+        throw new Error(error.detail?.message || 'No credits remaining');
+    }
+
+    if (!response.ok) {
+        throw new Error('Failed to use credit');
+    }
+
+    return response.json();
+}

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import CreditsDisplay from '@/components/CreditsDisplay'
 
 export default function Header() {
     const { user, loading, signOut } = useAuth()
@@ -68,57 +69,60 @@ export default function Header() {
                         {loading ? (
                             <div className="w-8 h-8 rounded-full bg-cloud animate-pulse" />
                         ) : user ? (
-                            /* Logged in - User dropdown */
-                            <div className="relative" ref={dropdownRef}>
-                                <button
-                                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-sm hover:bg-cream-dark transition-colors"
-                                >
-                                    <div className="w-8 h-8 bg-navy rounded-full flex items-center justify-center">
-                                        <span className="text-cream text-xs font-medium">
-                                            {getInitials(user.email || 'U')}
-                                        </span>
-                                    </div>
-                                    <svg className="w-4 h-4 text-stone" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-
-                                {/* Dropdown */}
-                                {dropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-56 bg-white border border-cloud rounded-sm shadow-editorial py-1">
-                                        <div className="px-4 py-2 border-b border-cloud">
-                                            <p className="text-sm font-medium text-navy truncate">{user.email}</p>
-                                            <p className="text-xs text-stone">Free Plan</p>
+                            /* Logged in - Credits + User dropdown */
+                            <>
+                                <CreditsDisplay />
+                                <div className="relative" ref={dropdownRef}>
+                                    <button
+                                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                                        className="flex items-center gap-2 px-3 py-2 rounded-sm hover:bg-cream-dark transition-colors"
+                                    >
+                                        <div className="w-8 h-8 bg-navy rounded-full flex items-center justify-center">
+                                            <span className="text-cream text-xs font-medium">
+                                                {getInitials(user.email || 'U')}
+                                            </span>
                                         </div>
+                                        <svg className="w-4 h-4 text-stone" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
 
-                                        <Link
-                                            href="/upload"
-                                            className="block px-4 py-2 text-sm text-charcoal hover:bg-cream-dark"
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            New Analysis
-                                        </Link>
+                                    {/* Dropdown */}
+                                    {dropdownOpen && (
+                                        <div className="absolute right-0 mt-2 w-56 bg-white border border-cloud rounded-sm shadow-editorial py-1">
+                                            <div className="px-4 py-2 border-b border-cloud">
+                                                <p className="text-sm font-medium text-navy truncate">{user.email}</p>
+                                                <p className="text-xs text-stone">Free Plan</p>
+                                            </div>
 
-                                        <Link
-                                            href="/pricing"
-                                            className="block px-4 py-2 text-sm text-charcoal hover:bg-cream-dark"
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            Upgrade Plan
-                                        </Link>
-
-                                        <div className="border-t border-cloud mt-1 pt-1">
-                                            <button
-                                                onClick={handleSignOut}
-                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                            <Link
+                                                href="/upload"
+                                                className="block px-4 py-2 text-sm text-charcoal hover:bg-cream-dark"
+                                                onClick={() => setDropdownOpen(false)}
                                             >
-                                                Sign Out
-                                            </button>
+                                                New Analysis
+                                            </Link>
+
+                                            <Link
+                                                href="/pricing"
+                                                className="block px-4 py-2 text-sm text-charcoal hover:bg-cream-dark"
+                                                onClick={() => setDropdownOpen(false)}
+                                            >
+                                                Upgrade Plan
+                                            </Link>
+
+                                            <div className="border-t border-cloud mt-1 pt-1">
+                                                <button
+                                                    onClick={handleSignOut}
+                                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                >
+                                                    Sign Out
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            </>
                         ) : (
                             /* Not logged in */
                             <>

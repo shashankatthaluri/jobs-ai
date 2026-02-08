@@ -17,6 +17,7 @@ from routes.write import router as write_router
 from routes.process import router as process_router
 from routes.analyze import router as analyze_router
 from routes.webhooks import router as webhooks_router
+from routers.credits import router as credits_router
 
 
 # Initialize FastAPI app
@@ -44,6 +45,7 @@ app.include_router(write_router)
 app.include_router(process_router)
 app.include_router(analyze_router)  # Multi-step API
 app.include_router(webhooks_router)  # Polar.sh webhooks
+app.include_router(credits_router)  # Credits management
 
 
 @app.get("/")

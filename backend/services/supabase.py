@@ -81,6 +81,73 @@ class SupabaseService:
         return result.count or 0
     
     # =========================================
+    # Credits Operations
+    # =========================================
+    
+    async def get_user_credits(self, user_id: str) -> dict:
+        """Get user's credit information."""
+        result = self.client.table("profiles").select(
+            "credits_remaining, credits_used_this_month, credits_reset_at, tier"
+        ).eq("id", user_id).single().execute()
+        
+        if not result.data:
+            return {"credits_remaining": 0, "credits_used_this_month": 0, "tier": "free"}
+        
+        # Calculate tier limit
+        tier = result.data.get("tier", "free")
+        tier_limits = {"free": 3, "pro": 30, "team": 100}
+        
+        return {
+            "credits_remaining": result.data.get("credits_remaining", 0),
+            "credits_used_this_month": result.data.get("credits_used_this_month", 0),
+            "credits_reset_at": result.data.get("credits_reset_at"),
+            "tier": tier,
+            "tier_limit": tier_limits.get(tier, 3)
+        }
+    
+    async def use_credit(self, user_id: str) -> bool:
+        """
+        Attempt to use one credit for an analysis.
+        Returns True if successful, False if no credits remaining.
+        """
+        # First check if user has credits
+        credits = await self.get_user_credits(user_id)
+        if credits["credits_remaining"] <= 0:
+            return False
+        
+        # Deduct credit
+        self.client.table("profiles").update({
+            "credits_remaining": credits["credits_remaining"] - 1,
+            "credits_used_this_month": credits["credits_used_this_month"] + 1
+        }).eq("id", user_id).execute()
+        
+        return True
+    
+    async def add_credits(self, user_id: str, amount: int) -> dict:
+        """Add purchased credits to user account."""
+        credits = await self.get_user_credits(user_id)
+        new_total = credits["credits_remaining"] + amount
+        
+        self.client.table("profiles").update({
+            "credits_remaining": new_total
+        }).eq("id", user_id).execute()
+        
+        return {"credits_remaining": new_total}
+    
+    async def reset_credits_for_tier(self, user_id: str, tier: str) -> dict:
+        """Reset credits when user upgrades/changes tier."""
+        tier_limits = {"free": 3, "pro": 30, "team": 100}
+        new_credits = tier_limits.get(tier, 3)
+        
+        self.client.table("profiles").update({
+            "credits_remaining": new_credits,
+            "credits_used_this_month": 0,
+            "credits_reset_at": "now()"
+        }).eq("id", user_id).execute()
+        
+        return {"credits_remaining": new_credits, "tier": tier}
+    
+    # =========================================
     # Auth Verification
     # =========================================
     
